@@ -283,13 +283,13 @@ func newClient(keepAlives bool, proxy string) *http.Client {
 	if proxy != "" {
 		p, err := url.Parse(proxy)
 		if err != nil {
-			log.Fatalf("Invalid proxy URL: %v", err)
+			// log.Fatalf("Invalid proxy URL: %v", err)
 		}
 		tr.Proxy = http.ProxyURL(p)
 	}
 
 	re := func(req *http.Request, via []*http.Request) error {
-		log.Printf("Redirect detected: %v", req.URL)
+		// log.Printf("Redirect detected: %v", req.URL)
 		return http.ErrUseLastResponse
 	}
 
