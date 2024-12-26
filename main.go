@@ -267,35 +267,39 @@ func main() {
 }
 
 func newClient(keepAlives bool, proxy string) *http.Client {
-
 	tr := &http.Transport{
 		MaxIdleConns:      30,
-		IdleConnTimeout:   time.Second,
+		IdleConnTimeout:   time.Second * 30,
 		DisableKeepAlives: !keepAlives,
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: false, // Use system's CA pool
+		},
 		DialContext: (&net.Dialer{
-			Timeout:   time.Second * 10,
-			KeepAlive: time.Second,
+			Timeout:   time.Second * 30,
+			KeepAlive: time.Second * 30,
 		}).DialContext,
 	}
 
 	if proxy != "" {
-		if p, err := url.Parse(proxy); err == nil {
-			tr.Proxy = http.ProxyURL(p)
+		p, err := url.Parse(proxy)
+		if err != nil {
+			log.Fatalf("Invalid proxy URL: %v", err)
 		}
+		tr.Proxy = http.ProxyURL(p)
 	}
 
 	re := func(req *http.Request, via []*http.Request) error {
+		log.Printf("Redirect detected: %v", req.URL)
 		return http.ErrUseLastResponse
 	}
 
 	return &http.Client{
 		Transport:     tr,
 		CheckRedirect: re,
-		Timeout:       time.Second * 10,
+		Timeout:       time.Second * 30,
 	}
-
 }
+
 
 type headerArgs []string
 
